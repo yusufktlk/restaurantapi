@@ -17,13 +17,22 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from accounts.api.views import CustomerRegisterView,RestaurantRegisterView
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/',include('accounts.api.urls')),
     path('api-auth/', include('rest_framework.urls')),
+    path('auth/', include('django.contrib.auth.urls')),
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
     # path('dj-rest-auth/registration/', RegisterView.as_view(), name='rest_register'),
     path('dj-rest-auth/registration/customer', CustomerRegisterView.as_view(), name='customer_rest_register'),
-    path('dj-rest-auth/registration/restoran', RestaurantRegisterView.as_view())
+    path('dj-rest-auth/registration/restoran', RestaurantRegisterView.as_view()),
+    path('dj-rest-auth/password/reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
 ]
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG == True:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

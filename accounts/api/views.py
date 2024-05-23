@@ -37,7 +37,7 @@ class CustomerProfileDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 class ProductCategoryAPIView(generics.ListCreateAPIView):
     queryset = ProductCategory.objects.all()
     serializer_class = ProductCategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
 
 class ProductCategoryDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ProductCategory.objects.all()
@@ -57,7 +57,7 @@ class SingleOrderView(generics.RetrieveUpdateDestroyAPIView):
 class RestaurantProfileAPIView(generics.ListCreateAPIView):
     queryset = RestaurantProfile.objects.all()
     serializer_class = RestaurantProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
 
 class RestaurantProfileDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = RestaurantProfile.objects.all()
@@ -171,18 +171,22 @@ class CustomerRegisterView(RegisterView):
     serializer_class = CustomerRegisterSerializer
 
     def post(self, request):
+        print(request.data)
         username = request.data.get('username')
         email = request.data.get('email')
         password1 = request.data.get('password1')
         password2 = request.data.get('password2')
-        telefon = request.data.get('telefon')
         adres = request.data.get('adres')
-
+        telefon = request.data.get('telefon')
+        
         if User.objects.filter(username__iexact=username).exists():
+            print("denem1")
             return JsonResponse({'error': 'Username already exists'}, status=400)
         if User.objects.filter(email__iexact=email).exists():
+            print("denem2")
             return JsonResponse({'error': 'Email already exists'}, status=400)
         if password1 != password2:
+            print("deneme3")
             return JsonResponse({'error': "Passwords don't match"}, status=400)
 
         user = User.objects.create_user(username=username, email=email, password=password1)
@@ -204,14 +208,14 @@ class RestaurantRegisterView(RegisterView):
         address = request.data.get('address')
         image = request.data.get('image')
         minimum_order_amount = request.data.get('minimum_order_amount')
-        categories = request.data.getlist('category')  # Birden fazla kategori al
-
+        categories = request.data.getlist('categories')  # Birden fazla kategori al
+        print(request.data["categories"])
         if User.objects.filter(username__iexact=username).exists():
-            return JsonResponse({'error': 'Username already exists'}, status=400)
+            return JsonResponse({'error': 'Username already exists'}, status=401)
         if User.objects.filter(email__iexact=email).exists():
-            return JsonResponse({'error': 'Email already exists'}, status=400)
+            return JsonResponse({'error': 'Email already exists'}, status=402)
         if password1 != password2:
-            return JsonResponse({'error': "Passwords don't match"}, status=400)
+            return JsonResponse({'error': "Passwords don't match"}, status=403)
 
         user = User.objects.create_user(username=username, email=email, password=password1)
 
@@ -223,7 +227,7 @@ class RestaurantRegisterView(RegisterView):
             image=image,
             minimum_order_amount=minimum_order_amount
         )
-        restaurant_profile.category.set(categories)  # Kategorileri ayarla
+        restaurant_profile.categories.set(categories)  # Kategorileri ayarla
 
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})

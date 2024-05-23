@@ -19,7 +19,7 @@ class RestaurantProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='restaurants/')
+    image = models.ImageField(upload_to='images/restaurant')
     minimum_order_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     categories = models.ManyToManyField(ProductCategory, related_name="restaurants")
 
@@ -31,7 +31,7 @@ class Product(models.Model):
     name = models.CharField(max_length=100)
     category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE)
     description = models.TextField()
-    image = models.ImageField(upload_to='products/')
+    image = models.ImageField(upload_to='images/product')
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     restaurant = models.ForeignKey(RestaurantProfile, on_delete=models.CASCADE)
 

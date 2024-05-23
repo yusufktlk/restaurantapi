@@ -27,6 +27,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '10.0.5.92']
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:8081",
+    "http://localhost:8000",
+    "http://localhost:3000",
+    "http://localhost:8080",
+]
 
 # Application definition
 
@@ -172,6 +179,18 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp-mail.outlook.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'yusufkitlik@hotmail.com'
+EMAIL_HOST_PASSWORD = 'yusufbjk44'
+
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
+
+
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = 'uploads'
