@@ -1,6 +1,6 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
-from accounts.models import RestaurantProfile,Product,Order,OrderItem,ProductCategory,CustomerProfile, OrderUser
+from accounts.models import RestaurantProfile,Product,Order,OrderItem,ProductCategory,CustomerProfile, OrderUser, Adres
 from django.contrib.auth.models import User
 
 # class CustomRegisterSerializer(RegisterSerializer):
@@ -97,7 +97,6 @@ class ProductSerializer(serializers.ModelSerializer):
     restaurant_name = serializers.SerializerMethodField()
     category_name = serializers.SerializerMethodField()
     
-
     class Meta:
         model = Product
         fields = ['name', 'category_name', 'description', 'image', 'price', 'restaurant_name']
@@ -110,27 +109,33 @@ class ProductSerializer(serializers.ModelSerializer):
     
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    product = ProductSerializer()
 
     class Meta:
         model = OrderItem
         fields = ['product', 'quantity', 'additional_notes']
 
 
-class OrderItemSerializer(serializers.ModelSerializer):
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
-
+class AdresSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OrderItem
-        fields = ['product', 'quantity', 'additional_notes']
+        model = Adres
+        fields = '__all__'
+
+class RestaurantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RestaurantProfile
+        fields = ['name', 'address'] 
 
 class OrderUserSerializer(serializers.ModelSerializer):
+    adres = AdresSerializer()
     class Meta:
         model = OrderUser
-        fields = ['firstname', 'lastname', 'adress', 'phone']
-
+        fields = ['firstname', 'lastname', 'adres', 'phone', 'adres']
+  
 class OrderSerializer(serializers.ModelSerializer):
     order_items = OrderItemSerializer(many=True)
+    order_user = OrderUserSerializer()
+    restaurant = RestaurantSerializer()
 
     class Meta:
         model = Order
@@ -139,15 +144,16 @@ class OrderSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         order_items_data = validated_data.pop('order_items')
         order_user_data = validated_data.pop('order_user')  # Extract order_user data
+        restaurant_data = validated_data.pop('restaurant')
+        
         # Fetch the CustomerProfile instance corresponding to the provided user ID
         user_id = validated_data.pop('user')
         user_profile = User.objects.get(username=user_id)
-        order_user_objecrt = OrderUser.objects.get(id = order_user_data.id)
-        # print(user_profile, "username burda ++++++++++++")
+        order_user_objecrt = OrderUser.objects.get(id=order_user_data.id)
+        restaurant_instance = RestaurantProfile.objects.create(**restaurant_data)
 
         # Create the OrderUser instance
-        order = Order.objects.create(user=user_profile,order_user=order_user_objecrt, **validated_data)
-        
+        order = Order.objects.create(user=user_profile, order_user=order_user_objecrt, restaurant=restaurant_instance, **validated_data)
 
         # Create the order items
         for item_data in order_items_data:

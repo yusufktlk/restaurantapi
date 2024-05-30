@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from rest_framework import generics, permissions
 from rest_framework.generics import get_object_or_404
-from accounts.models import CustomerProfile, RestaurantProfile, ProductCategory, Order, OrderItem, Product, OrderUser
+from accounts.models import CustomerProfile, RestaurantProfile, ProductCategory, Order, OrderItem, Product, OrderUser,Adres
 
 from accounts.api.serializer import (
     CustomerProfileSerializer,
@@ -18,7 +18,8 @@ from accounts.api.serializer import (
     ProductSerializer,
     RestaurantProfileSerializer,
     CustomerRegisterSerializer,
-    RestaurantRegisterSerializer
+    RestaurantRegisterSerializer,
+    OrderUserSerializer
 )
 from accounts.api.permissons import IsRestaurantOwnerOrReadOnly, IsOwnerOrReadOnly
 from rest_framework import status
@@ -39,6 +40,11 @@ class ProductCategoryAPIView(generics.ListCreateAPIView):
     serializer_class = ProductCategorySerializer
     # permission_classes = [permissions.IsAuthenticated]
 
+class OrderUserView(generics.ListCreateAPIView):
+    queryset = OrderUser.objects.all()
+    serializer_class = OrderUserSerializer
+    # permission_classes = [permissions.IsAuthenticated]
+
 class ProductCategoryDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ProductCategory.objects.all()
     serializer_class = ProductCategorySerializer
@@ -52,7 +58,9 @@ class OrderView(generics.ListCreateAPIView):
 class OrderCreateView(APIView):
     def post(self, request, *args, **kwargs):
         user_data = request.data['order_user']
-        orderUser = OrderUser.objects.create(**user_data)
+        adresDetails = request.data['adres']
+        adress = Adres.objects.create(**adresDetails)
+        orderUser = OrderUser.objects.create(adres = adress,**user_data)
         customer = User.objects.get(id = request.user.id)
         serializer_data = {
             'user': customer.id,
@@ -62,8 +70,9 @@ class OrderCreateView(APIView):
             'order_user': orderUser.id,
         }
         serializer = OrderSerializer(data=serializer_data)
+        
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(),
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

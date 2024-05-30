@@ -63,13 +63,21 @@ class Product(models.Model):
 #         return f"{self.quantity}x {self.product.name} for {self.order.user}"
 
 
-    
+class Adres(models.Model):
+    il = models.CharField(max_length=30)
+    ilçe = models.CharField(max_length=30)
+    mahalle = models.CharField(max_length=30)
+    sokak = models.CharField(max_length=10)
+    adresTarifi = models.CharField(max_length=50)
+    adres = models.CharField(max_length=250)
+
     
 class OrderUser(models.Model):
     firstname = models.CharField(max_length=100)
     lastname = models.CharField(max_length=100)
-    adress = models.CharField(max_length=100)
+    adres = models.OneToOneField(Adres, on_delete=models.CASCADE, null=True)
     phone = models.CharField(max_length=11)
+
    
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
