@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from rest_framework import generics, permissions
 from rest_framework.generics import get_object_or_404
-from accounts.models import CustomerProfile, RestaurantProfile, ProductCategory, Order, OrderItem, Product
+from accounts.models import CustomerProfile, RestaurantProfile, ProductCategory, Order, OrderItem, Product, OrderUser
 
 from accounts.api.serializer import (
     CustomerProfileSerializer,
@@ -48,6 +48,24 @@ class OrderView(generics.ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+class OrderCreateView(APIView):
+    def post(self, request, *args, **kwargs):
+        user_data = request.data['order_user']
+        orderUser = OrderUser.objects.create(**user_data)
+        customer = User.objects.get(id = request.user.id)
+        serializer_data = {
+            'user': customer.id,
+            'restaurant': request.data['restaurant'],
+            'order_note': request.data['order_note'],
+            'order_items': request.data['order_items'],
+            'order_user': orderUser.id,
+        }
+        serializer = OrderSerializer(data=serializer_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SingleOrderView(generics.RetrieveUpdateDestroyAPIView):
     queryset = OrderItem.objects.all()
@@ -208,7 +226,7 @@ class RestaurantRegisterView(RegisterView):
         address = request.data.get('address')
         image = request.data.get('image')
         minimum_order_amount = request.data.get('minimum_order_amount')
-        categories = request.data.getlist('categories')  # Birden fazla kategori al
+        categories = request.data.getlist('categories')  
         print(request.data["categories"])
         if User.objects.filter(username__iexact=username).exists():
             return JsonResponse({'error': 'Username already exists'}, status=401)
@@ -227,7 +245,7 @@ class RestaurantRegisterView(RegisterView):
             image=image,
             minimum_order_amount=minimum_order_amount
         )
-        restaurant_profile.categories.set(categories)  # Kategorileri ayarla
+        restaurant_profile.categories.set(categories) 
 
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})

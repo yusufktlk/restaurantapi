@@ -25,15 +25,30 @@ SECRET_KEY = 'django-insecure-bh*@o#onr6379tt)hk&0x2ko1=@^3rl11+epe&e=rgc&k18wtg
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '10.0.5.92']
+ALLOWED_HOSTS = ['localhost', '10.0.5.92', "10.0.2.186", '19006', '192.168.201.59']
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:8081",
+    "http://10.0.3.92:8081",
+    "http://10.0.2.186:8000",
     "http://localhost:8000",
     "http://localhost:3000",
     "http://localhost:8080",
+    "http://localhost:19006"
+    "http://192.168.201.59:8000"
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:19006",
+    "http://192.168.201.59:19006",
+    "http://10.0.2.2:19006",
+    "http://10.0.2.186:19006"    # React Native için local geliştirme ortamı
+    "http://10.0.2.186:8000"    # React Native için local geliştirme ortam
+    "http://192.168.201.59:8000"  
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
@@ -183,8 +198,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'smtp-mail.outlook.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'yusufkitlik@hotmail.com'
-EMAIL_HOST_PASSWORD = 'yusufbjk44'
+EMAIL_HOST_USER = '*'
+EMAIL_HOST_PASSWORD = '*'
 
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
@@ -194,3 +209,5 @@ ACCOUNT_EMAIL_VERIFICATION = 'optional'
 MEDIA_URL = '/media/'
 
 MEDIA_ROOT = 'uploads'
+
+APPEND_SLASH = False

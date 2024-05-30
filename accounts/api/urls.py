@@ -7,6 +7,7 @@ urlpatterns = [
     path('category/',api_views.ProductCategoryAPIView.as_view(),name='product-category'),
     path('category/<int:pk>',api_views.ProductCategoryDetailAPIView.as_view(),name='product-category-detail'),
     path('orders/',api_views.OrderView.as_view(),name='orders'),
+    path('order/create',api_views.OrderCreateView.as_view(),name='orders'),
     path('orders/<int:pk>',api_views.SingleOrderView.as_view(),name='orders-detail'),
     path('restaurants',api_views.RestaurantProfileAPIView.as_view(),name='restaurants'),
     path('restaurants/<int:pk>',api_views.RestaurantProfileDetailAPIView.as_view(),name='restoranlar-detail'),

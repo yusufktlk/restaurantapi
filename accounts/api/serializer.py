@@ -1,6 +1,6 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
-from accounts.models import RestaurantProfile,Product,Order,OrderItem,ProductCategory,CustomerProfile
+from accounts.models import RestaurantProfile,Product,Order,OrderItem,ProductCategory,CustomerProfile, OrderUser
 from django.contrib.auth.models import User
 
 # class CustomRegisterSerializer(RegisterSerializer):
@@ -83,6 +83,7 @@ class RestaurantProfileSerializer(serializers.ModelSerializer):
         product_data = []
         for product in products:
             product_data.append({
+                'id': product.id,
                 'name': product.name,
                 'description': product.description,
                 'price': product.price,
@@ -107,42 +108,53 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_restaurant_name(self, obj):
         return obj.restaurant.name if obj.restaurant else None
     
+
 class OrderItemSerializer(serializers.ModelSerializer):
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
     class Meta:
         model = OrderItem
-        fields = ['product_name', 'quantity', 'additional_notes', 'price']
+        fields = ['product', 'quantity', 'additional_notes']
 
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'quantity', 'additional_notes']
+
+class OrderUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderUser
+        fields = ['firstname', 'lastname', 'adress', 'phone']
 
 class OrderSerializer(serializers.ModelSerializer):
-    order_items = OrderItemSerializer(many=True)  # Değişiklik burada, source kullanmaya gerek yok
-    user_name = serializers.SerializerMethodField()
-    user = serializers.SerializerMethodField()
-    total_price = serializers.SerializerMethodField()
+    order_items = OrderItemSerializer(many=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'order_items', 'user', 'user_name', 'total_price']
-
-    def get_user_name(self, obj):
-        return obj.user.user.username
-
-    def get_user(self, obj):
-        return {
-            'id': obj.user.user.id,
-            'telefon': obj.user.telefon,
-            'adres': obj.user.adres,
-            'username': obj.user.user.username
-        }
-
-    def get_total_price(self, obj):
-        return obj.get_total_price()
+        fields = ['user', 'restaurant', 'order_note', 'order_items', 'order_user']
 
     def create(self, validated_data):
         order_items_data = validated_data.pop('order_items')
-        order = Order.objects.create(**validated_data)
-        for order_item_data in order_items_data:
-            OrderItem.objects.create(order=order, **order_item_data)
+        order_user_data = validated_data.pop('order_user')  # Extract order_user data
+        # Fetch the CustomerProfile instance corresponding to the provided user ID
+        user_id = validated_data.pop('user')
+        user_profile = User.objects.get(username=user_id)
+        order_user_objecrt = OrderUser.objects.get(id = order_user_data.id)
+        # print(user_profile, "username burda ++++++++++++")
+
+        # Create the OrderUser instance
+        order = Order.objects.create(user=user_profile,order_user=order_user_objecrt, **validated_data)
+        
+
+        # Create the order items
+        for item_data in order_items_data:
+            OrderItem.objects.create(order=order, **item_data)
+
+        # Calculate and update total_price
+        order.total_price = order.get_total_price()
+        order.save()
+        
         return order

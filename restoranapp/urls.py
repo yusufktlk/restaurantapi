@@ -19,6 +19,13 @@ from django.urls import path, include
 from accounts.api.views import CustomerRegisterView,RestaurantRegisterView
 from django.contrib.auth import views as auth_views
 
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import csrf_exempt
+def get_csrf_token(request):
+    csrf_token = get_token(request)
+    return JsonResponse({'csrf_token': csrf_token})
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/',include('accounts.api.urls')),
@@ -29,6 +36,7 @@ urlpatterns = [
     path('dj-rest-auth/registration/customer', CustomerRegisterView.as_view(), name='customer_rest_register'),
     path('dj-rest-auth/registration/restoran', RestaurantRegisterView.as_view()),
     path('dj-rest-auth/password/reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('get_csrf_token/', get_csrf_token, name='get_csrf_token')
 ]
 
 from django.conf import settings
